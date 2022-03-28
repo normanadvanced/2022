@@ -1,0 +1,328 @@
+{\rtf1\ansi\ansicpg1252\cocoartf2513
+\cocoatextscaling0\cocoaplatform0{\fonttbl\f0\fswiss\fcharset0 Helvetica;}
+{\colortbl;\red255\green255\blue255;}
+{\*\expandedcolortbl;;}
+\margl1440\margr1440\vieww28600\viewh16580\viewkind0
+\pard\tx720\tx1440\tx2160\tx2880\tx3600\tx4320\tx5040\tx5760\tx6480\tx7200\tx7920\tx8640\pardirnatural\partightenfactor0
+
+\f0\fs24 \cf0 #include <GyroLib_4.0.h>\
+#include <kipr/botball.h>\
+//Lebot's Legacy \
+//How will this affect Leborn's Legacy??\
+//Adam, Michael, Harouna \
+int main()\
+\{\
+    //calibrate_degrees();\
+	create_calibrate_gyro();\
+    //int line_thresh;\
+    int range_thresh = 2000;\
+    // int lm;\
+    // int rm;\
+    //  int bump;*/\
+    int servo0 = 3;\
+    int servo1 = 0;\
+    int servo2 = 2;\
+    int claw_open = 1400; \
+    int claw_close = 0;  //\
+    int claw_rest = 700;\
+\
+    //In start box:\
+    //servo0 = 0\
+    //servo1 = 0\
+    //servo2 = 800\
+\
+\
+    //------------------------------------------------------------------------------- Lower Lebot's arm \
+\
+\
+    void drive(int speed, int time) \
+    \{\
+        create_drive_with_gyro(speed, time);\
+        //create_drive_with_gyro_advanced(speed,time, 10, 0);\
+    \}\
+\
+    void servo_speed(int pos, int speed) //higher speed is slower\
+    \{\
+        if (get_servo_position(servo0) < pos)\
+        \{\
+\
+            int i;\
+            for (i = get_servo_position(servo0); i < pos; ++i) \
+            \{\
+                set_servo_position(servo0, i);\
+                set_servo_position(servo1, i);\
+                msleep(speed);\
+            \}\
+        \}\
+        if (get_servo_position(servo0) > pos)\
+        \{\
+\
+            int i;\
+            for (i = get_servo_position(servo0); i > pos; --i) \
+            \{\
+                set_servo_position(servo0, i);\
+                set_servo_position(servo1, i);\
+                msleep(speed);\
+            \}\
+        \}\
+    \}\
+    \
+    void claw_speed(int pos, int speed) //higher speed is slower\
+    \{\
+        if (get_servo_position(servo2) < pos)\
+        \{\
+\
+            int i;\
+            for (i = get_servo_position(servo2); i < pos; ++i) \
+            \{\
+                set_servo_position(servo2, i);\
+                msleep(speed);\
+            \}\
+        \}\
+        if (get_servo_position(servo2) > pos)\
+        \{\
+\
+            int i;\
+            for (i = get_servo_position(servo2); i > pos; --i) \
+            \{\
+                set_servo_position(servo2, i);\
+                msleep(speed);\
+            \}\
+        \}\
+    \}\
+    \
+    \
+    \
+    \
+    \
+    \
+    \
+    //--------------------------------------------------------------------------------------------\
+    void open_claw()\
+    \{ \
+        // claw open for start box \
+        set_servo_position(servo2,claw_open);\
+        msleep(500);\
+    \}\
+\
+\
+    void close_claw()\
+    \{ \
+        set_servo_position(servo2,claw_close);\
+        msleep(500);\
+    \}\
+\
+    void rest_claw()\
+    \{ \
+        set_servo_position(servo2,claw_rest);\
+        msleep(500);\
+    \}\
+    void turn(int theta, int turnspeed)\
+    \{\
+        start_theta_tracker();\
+        create_turn_with_gyro_advanced(theta, turnspeed, 5, 0, 0); // mess with pk\
+        stop_theta_tracker();\
+    \}\
+\
+\
+    declare_degrees(626);// 90 degrees is 644 kipr degrees\
+\
+    // *************************************************************************************************LeGoat   \
+    enable_servos();\
+    set_servo_position(servo2,1400);\
+    msleep(500);    \
+    servo_speed(0,1);\
+    create_connect();\
+\
+    while(digital(0) == 0) //wait for button\
+    \{\
+    \}\
+\
+    msleep(1000);\
+    set_servo_position(servo2,1400);\
+    msleep(500);\
+    //open_claw();//open claw\
+    drive(100,1000); \
+    set_servo_position(2, 1000);\
+    drive(100,800);     //drive forward\
+    close_claw();       //grab pom and cube\
+    servo_speed(850,1); //lift claw\
+    msleep(1000);\
+    turn(20,200);\
+    drive(-100,3000);   // aligns against pvc in start box\
+\
+    drive(50, 300);\
+    turn(-75, 100); // turns toward airlock\
+\
+    drive(300,3000); // drives to and pushes the airlock \
+    turn(90,100);\
+    drive(-100, 4000); \
+    drive(100,1000);  \
+    turn(-90,100);\
+    drive(100, 5500);\
+   \
+	\
+    //----------------------drive until airlock using sensor\
+    while(analog(2) < range_thresh) \
+    \{\
+        create_drive_direct(20, 20);\
+        msleep(1000);\
+\
+    \}   \
+    if(analog(2) < range_thresh)\
+    \{\
+        create_drive_direct(20, 20);\
+		msleep(1000);\
+    \}   \
+    while(analog(2) > range_thresh)\
+    \{\
+        create_drive_direct(-20, -20);\
+        msleep(1000);\
+    \}	\
+    if(analog(2) > range_thresh)\
+    \{\
+        create_drive_direct(-20, -20);\
+        msleep(1000);\
+    \}	    \
+    turn(-10, 30); // slightly turns so that the cube and pom are dropped in the middle of the airlock\
+    set_servo_position(servo2, 1400); // Drops red cube and pom\
+    msleep(600);\
+    turn(-10,25);\
+    servo_speed(1400, 1);\
+\
+    //set_servo_position(servo0, 1400);\
+    //-----------------------------------------------\
+    \
+    drive(-100,1500);\
+    \
+    turn(120,100); \
+    drive(-100,2500); // aligns to face the front of the board\
+    msleep(1000);\
+    \
+       while ((get_create_rbump() == 0)) // drives until it bumps into the front side pvc\
+    \{\
+    drive(250,1000); \
+    \}\
+    \
+    drive(-100,1600); \
+    turn(90,100); //turns toward the left side of the board\
+    \
+    drive(100, 2000); // drives for 2 seconds and aligns\
+    turn(90,100);\
+    drive(-100,3000);\
+    \
+    drive(100,2000);\
+    turn(-88,100); // turns toward the left side of the board again.\
+    \
+    \
+  	// Assumes that the transporter is gone and out of the way.\
+    /* drive(-100,1600); \
+    turn(90,100);\
+    drive(-100,5000);// aligns to face the left side of the board\
+    msleep(500);\
+    drive(100,6000); */\
+    \
+    printf("l light value: %d\\n", get_create_lcliff_amt());\
+    printf("r light value: %d\\n",  get_create_rcliff_amt());\
+    \
+    while ((get_create_rcliff_amt() > 2000)) // Drives until botguy black line\
+    \{\
+    drive(70,100); \
+    \}\
+    \
+    printf("l light value: %d\\n", get_create_lcliff_amt());\
+    printf("r light value: %d\\n",  get_create_rcliff_amt());\
+    set_servo_position(servo0,1500); // Lifts claw to use range sensor.\
+    set_servo_position(servo1,300);\
+    set_servo_position(servo2,500);\
+    msleep(1000);\
+    \
+    if(analog(2) < range_thresh) // turns until it sees botguy\
+     \{\
+        create_drive_direct(20, -20);\
+     \}\
+\
+    while(analog(2) < range_thresh) \
+    \{\
+        create_drive_direct(20, -20);\
+    \}\
+    msleep(300);\
+    \
+    create_drive_direct(0, 0); //waits\
+    msleep(1000);\
+    set_servo_position(servo2,1800);\
+    msleep(1000);\
+    set_servo_position(servo1,1400); // lifts the claw to aim at botguy\
+    msleep(1000);\
+    \
+    while(digital(1) == 0) // drives foward until external bump sensor is pressed\
+    \{\
+        create_drive_direct(20, 20);\
+    \}\
+    create_drive_direct(0,0);\
+    set_servo_position(servo2,0); // closes claw to grab botguy\
+    msleep(500);\
+    \
+   \
+    drive(-100,12000); // Drives backwards to align with back pvc\
+    drive(50, 2000);\
+    turn(-87, 100); //turn towards airlock agin\
+    drive(100, 4000);\
+    \
+    \
+    turn(90,100);\
+    drive(-100, 4000); // aligns\
+    drive(-20,2000);  \
+    turn(-90, 100);\
+   // turn(-100,100);\
+    \
+    \
+    servo_speed(1400, 1);// slowly drop botdude \
+    //--------------------------------- drops botguy on the airlock\
+    	double start_time = seconds();\
+    \
+     while(digital(1) == 0 && get_create_lbump() == 0 && seconds() < start_time + 10) // drives until bump\
+\
+    \{\
+        drive(50, 1000);\
+    \}	\
+    	\
+ 	turn(-15, 50);\
+    servo_speed(1250, 1);\
+   \
+     create_drive_direct(-20,-20);\
+        msleep(2400);\
+   /* while(analog(2) > 1900)\
+    \{\
+        create_drive_direct(-20,-20);\
+        msleep(100);\
+    \}*/\
+    claw_speed(1800, 1);\
+   	turn(-10,10);\
+    msleep(1000);\
+    servo_speed(1400, 1);\
+    drive(-50,3000);\
+    \
+    \
+  \
+\
+\
+   /* while(analog(2) > range_thresh)\
+    \{\
+        create_drive_direct(-20, -20);\
+        msleep(1000);\
+        servo_speed(900, 5);\
+    \}	\
+      if(analog(2) > range_thresh)\
+    \{\
+        create_drive_direct(-20, -20);\
+        msleep(1000);\
+        servo_speed(900, 5);\
+    \}	*/\
+    \
+ \
+    \
+    create_stop();\
+    return 0;\
+\}\
+}
